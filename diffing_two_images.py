@@ -1,4 +1,5 @@
 #!/usr/bin/python
+
 # Sample program or step 8 in becoming a DFIR Wizard!
 # No license as this code is simple and free!
 # DFIR Wizard v11 - Part 12
