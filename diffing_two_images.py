@@ -1,5 +1,4 @@
 #!/usr/bin/python
-
 # Sample program or step 8 in becoming a DFIR Wizard!
 # No license as this code is simple and free!
 # DFIR Wizard v11 - Part 12
@@ -35,8 +34,8 @@ import re
 def directoryRecurse(filesystemObject,directoryObject, parentPath, sha1Hash):
 
 
-  parentDirectory = '/%s' % ('/'.join(parentPath))
-  fileObject = filesystemObject.open_dir(parentDirectory)
+  # parentDirectory = '/%s' % ('/'.join(parentPath))
+  # fileObject = filesystemObject.open_dir(parentDirectory)
 
   for entryObject in directoryObject:
       if entryObject.info.name.name in [".", ".."]:
@@ -72,25 +71,29 @@ def directoryRecurse(filesystemObject,directoryObject, parentPath, sha1Hash):
             sha1hash = hashlib.sha1()
             sha1hash.update(filedata)
 
-            sha1Hash.add(sha1hash.hexdigest())
-            fullFilePath = ('%s/%s' % (parentDirectory, entryObject.info.name.name)).replace('//','/')
+            #put the sha1hash into a set(used to figure out if the file is different)
 
+            sha1Hash.add(sha1hash.hexdigest())
+
+            # in the dic, the key is sha1hash, value is the filePath(used to find out the file according to sha1hash)
+
+            fullFilePath = ('%s/%s' % (parentDirectory, entryObject.info.name.name)).replace('//','/')
             dic[sha1hash.hexdigest()] = fullFilePath
 
-        #     wr.writerow([int(entryObject.info.meta.addr),
-        #       '/'.join(parentPath)+entryObject.info.name.name,
-        #       datetime.datetime.fromtimestamp(entryObject.info.meta.crtime).strftime('%Y-%m-%d %H:%M:%S'),
-        #       int(entryObject.info.meta.size),
-        #       md5hash.hexdigest(),
-        #       sha1hash.hexdigest()])
+            wr.writerow([int(entryObject.info.meta.addr),
+              '/'.join(parentPath)+entryObject.info.name.name,
+              datetime.datetime.fromtimestamp(entryObject.info.meta.crtime).strftime('%Y-%m-%d %H:%M:%S'),
+              int(entryObject.info.meta.size),
+              md5hash.hexdigest(),
+              sha1hash.hexdigest()])
             
-        # elif f_type == pytsk3.TSK_FS_META_TYPE_REG and entryObject.info.meta.size == 0:
+        elif f_type == pytsk3.TSK_FS_META_TYPE_REG and entryObject.info.meta.size == 0:
 
-        #     wr.writerow([int(entryObject.info.meta.addr),
-        #       '/'.join(parentPath)+entryObject.info.name.name,datetime.datetime.fromtimestamp(entryObject.info.meta.crtime).strftime('%Y-%m-%d %H:%M:%S'),
-        #       int(entryObject.info.meta.size),
-        #       "d41d8cd98f00b204e9800998ecf8427e",
-        #       "da39a3ee5e6b4b0d3255bfef95601890afd80709"])
+            wr.writerow([int(entryObject.info.meta.addr),
+              '/'.join(parentPath)+entryObject.info.name.name,datetime.datetime.fromtimestamp(entryObject.info.meta.crtime).strftime('%Y-%m-%d %H:%M:%S'),
+              int(entryObject.info.meta.size),
+              "d41d8cd98f00b204e9800998ecf8427e",
+              "da39a3ee5e6b4b0d3255bfef95601890afd80709"])
           
       except IOError as e:
         print e
@@ -118,16 +121,24 @@ def extractFile(imageFile,filenames):
     print "File System Type Dectected ",filesystemObject.info.ftype
     directoryObject = filesystemObject.open_dir(path=dirPath)
     print "Directory:",dirPath
+  outputPath = 'ex_differ_file'
 
   for filename in filenames:
+    if not os.path.exists(outputPath):
+      os.makedirs(outputPath)
     if not os.path.isdir(str(filename)):
       try:
+        ex_path = ('%s/%s' % (outputPath, os.path.basename(str(filename)))).replace('//','/') 
+
+        extractFile = open(ex_path,'w')
+
         fileobject = filesystemObject.open(str(filename))
-        outfile = open(os.path.basename(str(filename)), 'w')
         filedata = fileobject.read_random(0,fileobject.info.meta.size)
-        outfile.write(filedata)
+        extractFile.write(filedata)
+        extractFile.close
       except IOError:
         print('cannot open', str(filename))
+
 
         
 argparser = argparse.ArgumentParser(description='Hash files recursively from a forensic image and optionally extract them')
@@ -248,7 +259,7 @@ sha1Hash_diff.update(sha1Hash1.symmetric_difference(sha1Hash2))
 
 # print sha1Hash2
 # print'3333333333'
-# print sha1Hash_diff
+print sha1Hash_diff
 
 
 # print '4444444444'
@@ -261,7 +272,12 @@ print '6666666666'
 for s in sha1Hash_diff:
   v.append(dic[s]) 
 
+print 'vvvvvvvvvv'
+print v
+print 'first time'
 extractFile(args.imagefile1, v)
+
+print 'second time'
 extractFile(args.imagefile2, v)
 
 
