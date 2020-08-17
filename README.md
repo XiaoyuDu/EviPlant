@@ -1,9 +1,8 @@
 # EviPlant
 
-1) The first week, code is about finding out the pictures with same md5 hash in the image file.
+Diffing tool:
 
-python Automating_DFIR.py -i AssignmentImage.dmg -t raw
+Extracting different files of 2 given disk images;
 
-2) The second week, code is about finding the difference between two image files and extract the diffent files.
 
 python diffing_two_images.py -i1 AssignmentImage1.dmg -i2 AssignmentImage2.dmg -t raw
